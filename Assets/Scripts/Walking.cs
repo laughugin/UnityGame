@@ -6,54 +6,65 @@ using UnityEngine;
 
 public class Walking : MonoBehaviour
 {
-    public PlayerController PC;
+    public PlayerController     PC;
 
-    public Transform LeftFootTarget, RightFootTarget;
-    public Transform LeftHandTarget, rightHandTarget;
-    public Transform Player, Armature, Camera;
-    public Rigidbody PlayerRB;
-    public float StepSpeed, StepHight;
+    public Transform            LeftFootTarget, RightFootTarget;
+    public Transform            LeftHandTarget, rightHandTarget;
+    public Transform            Player, Armature, Camera;
+    public Rigidbody            PlayerRB;
+    public float                StepSpeed, StepHight;
 
 
-    private Vector3 LeftFootTargetPoint, RightFootTargetPoint;
+    private Vector3             LeftFootTargetPoint, RightFootTargetPoint;
 
-    private Vector3      Body_position_Last;
-    private Vector3  LeftFoot_position_Last;
-    private Vector3 RightFoot_position_Last;
-    private Vector3  LeftHand_position_Last;
-    private Vector3 RightHand_position_Last;
+    private Vector3             Body_position_Last;
+    private Vector3             LeftFoot_position_Last;
+    private Vector3             RightFoot_position_Last;
+    private Vector3             LeftHand_position_Last;
+    private Vector3             RightHand_position_Last;
     
-    private Vector3  LeftFoot_touch_point;
-    private Vector3 RightFoot_touch_point;
+    private Vector3             LeftFoot_touch_point;
+    private Vector3             RightFoot_touch_point;
 
-    private Quaternion      Body_rotation_Last;
-    private Quaternion  LeftFoot_rotation_Last;
-    private Quaternion RightFoot_rotation_Last;
-    private Quaternion  LeftHand_rotation_Last;
-    private Quaternion RightHand_rotation_Last;
+    private Quaternion          Body_rotation_Last;
+    private Quaternion          LeftFoot_rotation_Last;
+    private Quaternion          RightFoot_rotation_Last;
+    private Quaternion          LeftHand_rotation_Last;
+    private Quaternion          RightHand_rotation_Last;
 
-    private float       Body_progress;
-    private float       LeftFoot_progress;
-    private float       RightFoot_progress;
-    private float       Hands_progress;
+    private float               Body_progress;
+    private float               LeftFoot_progress;
+    private float               RightFoot_progress;
+    private float               Hands_progress;
 
-    private int     BodyMoveStage       = 0;
-    private int     LeftFootMoveStage    = 0;
-    private int     RightFootMoveStage   = 1;
-    private int     HandsMoveStage   = 0;
+    private int                 BodyMoveStage               = 0;
+    private int                 LeftFootMoveStage           = 0;
+    private int                 RightFootMoveStage          = 1;
+    private int                 HandsMoveStage              = 0;
     
-    private bool    LeftFootGrounded      = true;
-    private bool    RightFootGrounded     = true;
+    private bool                LeftFootGrounded            = true;
+    private bool                RightFootGrounded           = true;
 
-    private float    Body_maxSpeed           = 0.03f;
-    private float    Foots_maxSpeed          = 0.03f;
-    private float    Hands_maxSpeed           = 0.03f;
+    private bool                RightLegRunOnce             = true;
+    private bool                LeftLegRunOnce              = true;
+    private bool                BodyRunOnce                 = true;
+    private bool                TwoSWaitRunOnce             = true;
 
-    public float    Body_Minimum_Speed           = 0.03f;
-    public float    Foot_Minimum_Speed            = 0.03f;
-    public float    Hands_Minimum_Speed           = 0.03f;
+    private bool                Posing                      = false;
 
-    // Start is called before the first frame update
+    private bool                LegAdjust                   = false;
+    private bool                LegAdjustInit               = true;
+
+    private float               Body_maxSpeed               = 0.03f;
+    private float               Foots_maxSpeed              = 0.03f;
+    private float               Hands_maxSpeed              = 0.03f;
+
+    public float                Body_Minimum_Speed          = 0.03f;
+    public float                Foot_Minimum_Speed          = 0.03f;
+    public float                Hands_Minimum_Speed         = 0.03f;
+
+    private Coroutine           checkCoroutine              = null;
+
     void Start()
     {
         Body_position_Last         = Armature.localPosition;
@@ -73,7 +84,7 @@ public class Walking : MonoBehaviour
             Start = Body_position_Last;
             StartR = Body_rotation_Last;
             Target = Vector3.zero;
-            TargetR = Quaternion.Euler(-90, -90, 90);
+            TargetR = Quaternion.Euler(-85, 0, 0);
             Armature.localPosition = CalculatePoint(Start, Target, Body_progress);
             Armature.localRotation = CalculateRotation(StartR, TargetR, Body_progress);
             if(Body_progress >= 1){
@@ -90,7 +101,7 @@ public class Walking : MonoBehaviour
             StartR = Body_rotation_Last;
             Target = Vector3.zero;
             Target = Target + Vector3.up*0.06f + Vector3.right*0.02f;
-            TargetR = Quaternion.Euler(-88.5f, -90, 105);
+            TargetR = Quaternion.Euler(-85, -15, 30);
             Armature.localPosition = CalculatePoint(Start, Target, Body_progress);
             Armature.localRotation = CalculateRotation(StartR, TargetR, Body_progress);
             if(Body_progress >= 1){
@@ -106,7 +117,7 @@ public class Walking : MonoBehaviour
             Start = Body_position_Last;
             StartR = Body_rotation_Last;
             Target = Vector3.zero;
-            TargetR = Quaternion.Euler(-90, -90, 90);
+            TargetR = Quaternion.Euler(-85, 0, 0);
             Armature.localPosition = CalculatePoint(Start, Target, Body_progress);
             Armature.localRotation = CalculateRotation(StartR, TargetR, Body_progress);
             if(Body_progress >= 1){
@@ -123,7 +134,7 @@ public class Walking : MonoBehaviour
             StartR = Body_rotation_Last;
             Target = Vector3.zero;
             Target = Target  + Vector3.up*0.06f - Vector3.right*0.02f;
-            TargetR = Quaternion.Euler(-91.5f, -90, 75);
+            TargetR = Quaternion.Euler(-85, -30, 15);
             Armature.localPosition = CalculatePoint(Start, Target, Body_progress);
             Armature.localRotation = CalculateRotation(StartR, TargetR, Body_progress);
             if(Body_progress >= 1){
@@ -283,7 +294,7 @@ public class Walking : MonoBehaviour
             LeftFootGrounded = false;
             LStart = LeftFoot_position_Last;
             LStartR = LeftFoot_rotation_Last;
-            LTarget = new Vector3(-0.1f, 0.07f, 0) + new Vector3(PC.curSpeedY/12, 0, PC.curSpeedX/3)*0.5f;
+            LTarget = new Vector3(-0.1f, 0.07f, 0) + new Vector3(PC.curSpeedY/12, 0, PC.curSpeedX/3)*0.7f;
             LTargetR = Quaternion.Euler(-18, 0, 0);
             LeftFootTarget.localPosition = CalculatePoint(LStart, LTarget, LeftFoot_progress);
             LeftFootTarget.localRotation = CalculateRotation(LStartR, LTargetR, LeftFoot_progress);
@@ -330,7 +341,6 @@ public class Walking : MonoBehaviour
             LeftFoot_progress = 0;
 
             if(Vector3.Distance(LeftFootTarget.position, Armature.position) >= 0.2){
-                Debug.Log(LeftFootMoveStage + "   " + RightFootMoveStage);
                 if(RightFootMoveStage != 1 && RightFoot_progress >= 1){
                     RightFootMoveStage = 1;
                     RightFoot_progress = 0;
@@ -358,7 +368,7 @@ public class Walking : MonoBehaviour
             RightFootGrounded = false;
             RStart = RightFoot_position_Last;
             RStartR = RightFoot_rotation_Last;
-            RTarget = new Vector3(0.1f, 0.07f, 0) + new Vector3(PC.curSpeedY/12, 0, PC.curSpeedX/3)*0.5f;
+            RTarget = new Vector3(0.1f, 0.07f, 0) + new Vector3(PC.curSpeedY/12, 0, PC.curSpeedX/3)*0.7f;
             RTargetR = Quaternion.Euler(-18, 0, 0);
             RightFootTarget.localPosition = CalculatePoint(RStart, RTarget, RightFoot_progress);
             RightFootTarget.localRotation = CalculateRotation(RStartR, RTargetR, RightFoot_progress);
@@ -404,7 +414,6 @@ public class Walking : MonoBehaviour
             RightFoot_progress = 0;
 
             if(Vector3.Distance(RightFootTarget.position, Armature.position) >= 0.2){
-                Debug.Log(LeftFootMoveStage + "   " + RightFootMoveStage);
                 if(LeftFootMoveStage != 1 && LeftFoot_progress >= 1){
                     LeftFootMoveStage = 1;
                     LeftFoot_progress = 0;
@@ -448,6 +457,241 @@ public class Walking : MonoBehaviour
         return interpolatedRotation;
     }
 
+    private void LandLegs(){
+
+        Vector3 LTarget, LStart;
+        Quaternion LTargetR, LStartR;
+        RaycastHit Lhit;
+        Vector3 RTarget, RStart;
+        Quaternion RTargetR, RStartR;
+        RaycastHit Rhit;
+
+        if(!RightFootGrounded){
+            if(RightFoot_progress > 0 && RightLegRunOnce){
+                RightFoot_progress = 0;
+                RightLegRunOnce = false;
+            }
+
+            if(RightFoot_progress <= Foots_maxSpeed){
+                RightFoot_position_Last = RightFootTarget.position;
+                RightFoot_rotation_Last = RightFootTarget.localRotation;
+                if (Physics.Raycast(RightFootTarget.position + 0.2f*Vector3.up, Vector3.down, out Rhit, Mathf.Infinity))
+                {
+                    RightFoot_touch_point = Rhit.point;
+                }
+            }
+                RStart = RightFoot_position_Last;
+                RStartR = RightFoot_rotation_Last;
+                RTarget = RightFoot_touch_point;
+                RTargetR = Quaternion.Euler(0, 0, 0);
+                RightFootTarget.position = CalculatePoint(RStart, RTarget, RightFoot_progress);
+                RightFootTarget.localRotation = CalculateRotation(RStartR, RTargetR, RightFoot_progress);
+            
+            if(RightFoot_progress >= 1){
+                RightFoot_progress = 1;
+                RightFootGrounded = true;
+                RightFoot_position_Last = RightFootTarget.position;
+                RightFoot_rotation_Last = RightFootTarget.rotation;
+            }
+
+            if(RightFoot_progress <= 1 && RightFootMoveStage != 2){
+                RightFoot_progress += Foots_maxSpeed;
+            }
+
+        }
+        
+        if(!LeftFootGrounded){
+            if(LeftFoot_progress > 0 && LeftLegRunOnce){
+                LeftFoot_progress = 0;
+                LeftLegRunOnce = false;
+            }
+
+            if(LeftFoot_progress <= Foots_maxSpeed){
+                LeftFoot_position_Last = LeftFootTarget.position;
+                LeftFoot_rotation_Last = LeftFootTarget.localRotation;
+                if (Physics.Raycast(LeftFootTarget.position + 0.2f*Vector3.up, Vector3.down, out Lhit, Mathf.Infinity))
+                {
+                    LeftFoot_touch_point = Lhit.point;
+                }
+            }
+
+            LStart = LeftFoot_position_Last;
+            LStartR = LeftFoot_rotation_Last;
+            LTarget = LeftFoot_touch_point;
+            LTargetR = Quaternion.Euler(0, 0, 0);
+            LeftFootTarget.position = CalculatePoint(LStart, LTarget, LeftFoot_progress);
+            LeftFootTarget.localRotation = CalculateRotation(LStartR, LTargetR, LeftFoot_progress);
+
+            if(LeftFoot_progress >= 1){
+                LeftFoot_progress = 1;
+                LeftFootGrounded = true;
+                LeftFoot_position_Last = LeftFootTarget.position;
+                LeftFoot_rotation_Last = RightFootTarget.rotation;
+            }
+
+            if(LeftFoot_progress <= 1 && LeftFootMoveStage != 2){
+                LeftFoot_progress += Foots_maxSpeed;
+            }
+        }
+    }
+
+    private void LeftFoot_MoveToDefault(){
+        Vector3 LTarget, LStart;
+        Quaternion LTargetR, LStartR;
+        RaycastHit Lhit;
+        if( LeftFootMoveStage == 0){
+            if(LeftFoot_progress <= Foots_maxSpeed){
+                LeftFoot_position_Last = LeftFootTarget.position;
+                LeftFoot_rotation_Last = LeftFootTarget.localRotation;
+            }
+
+            LeftFootGrounded = false;
+            LStart = LeftFoot_position_Last;
+            LStartR = LeftFoot_rotation_Last;
+            LTarget = LeftFoot_position_Last + Vector3.up*0.2f;
+            LTargetR = Quaternion.Euler(0, 0, 0);
+            LeftFootTarget.position = CalculatePoint(LStart, LTarget, LeftFoot_progress);
+            LeftFootTarget.localRotation = CalculateRotation(LStartR, LTargetR, LeftFoot_progress);
+
+            if(LeftFoot_progress >= 1){
+                LeftFoot_progress = 0;
+                LeftFootMoveStage = 1;
+            }
+
+            
+        } else if ( LeftFootMoveStage == 1) {
+            if(LeftFoot_progress <= Foots_maxSpeed){
+                LeftFoot_position_Last = LeftFootTarget.position;
+                LeftFoot_rotation_Last = LeftFootTarget.localRotation;
+                if (Physics.Raycast(Armature.position + 0.2f*Vector3.up - 0.15f*Armature.right, Vector3.down, out Lhit, Mathf.Infinity))
+                {
+                    LeftFoot_touch_point = Lhit.point;
+                }
+            }
+
+            LeftFootGrounded = false;
+            LStart = LeftFoot_position_Last;
+            LStartR = LeftFoot_rotation_Last;
+            LTarget =  LeftFoot_touch_point;
+            LTargetR = Quaternion.Euler(0, 0, 0);
+            LeftFootTarget.position = CalculatePoint(LStart, LTarget, LeftFoot_progress);
+            LeftFootTarget.localRotation = CalculateRotation(LStartR, LTargetR, LeftFoot_progress);
+
+            if(LeftFoot_progress >= 1){
+                LeftFoot_progress = 1;
+                LeftFootGrounded = true;
+                LeftFoot_position_Last = LeftFootTarget.position;
+                LeftFoot_rotation_Last = LeftFootTarget.rotation;
+            }
+        }
+
+        if(LeftFoot_progress <= 1 && LeftFootMoveStage != 2){
+            LeftFoot_progress += Foots_maxSpeed;
+        }
+    }
+
+    private void RightFoot_MoveToDefault(){
+        Vector3 RTarget, RStart;
+        Quaternion RTargetR, RStartR;
+        RaycastHit Rhit;
+        if( RightFootMoveStage == 0){
+            if(RightFoot_progress <= Foots_maxSpeed){
+                RightFoot_position_Last = RightFootTarget.position;
+                RightFoot_rotation_Last = RightFootTarget.localRotation;
+            }
+            
+
+            RightFootGrounded = false;
+            RStart = RightFoot_position_Last;
+            RStartR = RightFoot_rotation_Last;
+            RTarget = RightFoot_position_Last + Vector3.up*0.2f;
+            RTargetR = Quaternion.Euler(0, 0, 0);
+            RightFootTarget.position = CalculatePoint(RStart, RTarget, RightFoot_progress);
+            RightFootTarget.localRotation = CalculateRotation(RStartR, RTargetR, RightFoot_progress);
+
+            if(RightFoot_progress >= 1){
+                RightFoot_progress = 0;
+                RightFootMoveStage = 1;
+            }
+
+            
+        } else if ( RightFootMoveStage == 1) {
+            if(RightFoot_progress <= Foots_maxSpeed){
+                RightFoot_position_Last = RightFootTarget.position;
+                RightFoot_rotation_Last = RightFootTarget.localRotation;
+                if (Physics.Raycast(Armature.position + 0.2f*Vector3.up + 0.15f*Armature.right, Vector3.down, out Rhit, Mathf.Infinity))
+                {
+                    RightFoot_touch_point = Rhit.point;
+                }
+            }
+            
+
+            RightFootGrounded = false;
+            RStart = RightFoot_position_Last;
+            RStartR = RightFoot_rotation_Last;
+            RTarget = RightFoot_touch_point;
+            RTargetR = Quaternion.Euler(0, 0, 0);
+            RightFootTarget.position = CalculatePoint(RStart, RTarget, RightFoot_progress);
+            RightFootTarget.localRotation = CalculateRotation(RStartR, RTargetR, RightFoot_progress);
+
+            if(RightFoot_progress >= 1){
+                RightFoot_progress = 1;
+                RightFootGrounded = true;
+                RightFoot_position_Last = RightFootTarget.position;
+                RightFoot_rotation_Last = RightFootTarget.rotation;
+                LegAdjust = false;
+                LegAdjustInit = true;
+            }
+        }
+
+        if(RightFoot_progress <= 1 && RightFootMoveStage != 2){
+            RightFoot_progress += Foots_maxSpeed;
+        }
+    }
+    
+    private void Body_MoveHigher(){
+        Vector3 Target, Start;
+        Quaternion TargetR, StartR;
+        if(Body_progress <= Body_maxSpeed){
+            Body_position_Last = Armature.localPosition;
+            Body_rotation_Last = Armature.localRotation;
+        }
+        Start = Body_position_Last;
+        StartR = Body_rotation_Last;
+        Target = Vector3.zero + Vector3.up*0.1f;
+        TargetR = Quaternion.Euler(-90, 0, 0);
+        Armature.localPosition = CalculatePoint(Start, Target, Body_progress);
+        Armature.localRotation = CalculateRotation(StartR, TargetR, Body_progress);
+        if(Body_progress >= 1){
+            Body_progress = 1;
+        }
+        if(Body_progress <= 1){
+            Body_progress += Body_maxSpeed;
+        }
+    }
+
+    IEnumerator GoToPose()
+    {
+        // Wait for 2 seconds
+        if(TwoSWaitRunOnce){
+            yield return new WaitForSeconds(1f);
+            TwoSWaitRunOnce = false;
+        }
+
+        if (!PC.isMoving)
+        {
+
+            if(!Posing){
+                Body_progress = 0;
+                LegAdjust = true;
+            }
+            Posing = true;
+            
+            Body_MoveHigher();
+        }
+        checkCoroutine = null;
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -466,12 +710,75 @@ public class Walking : MonoBehaviour
             Foots_maxSpeed = Foot_Minimum_Speed;
         }
 
+        if (!PC.isMoving && checkCoroutine == null)
+        {
+            checkCoroutine = StartCoroutine(GoToPose());
+        }
+
+        if(!PC.isMoving && RightFootGrounded){
+            RightFootTarget.position = RightFoot_position_Last;
+            RightFootTarget.rotation = RightFoot_rotation_Last;
+            Debug.Log(Quaternion.Angle(LeftFootTarget.rotation, Player.rotation));
+            if(Quaternion.Angle(RightFootTarget.rotation, Player.rotation) > 60){
+                LegAdjust = true;
+            }
+        }
+
+        if(!PC.isMoving && LeftFootGrounded){
+            LeftFootTarget.position = LeftFoot_position_Last;
+            LeftFootTarget.rotation = LeftFoot_rotation_Last;
+            if(Quaternion.Angle(LeftFootTarget.rotation, Player.rotation) > 60){
+                LegAdjust = true;
+            }
+        }
+
+        if (LegAdjust){
+            if(LegAdjustInit){
+                LeftFoot_progress = 0;
+                LeftFootMoveStage = 0;
+                RightFoot_progress = 0;
+                RightFootMoveStage = 0;
+                LegAdjustInit = false;
+            }
+            LeftFoot_MoveToDefault();
+            if(LeftFootGrounded){
+                RightFoot_MoveToDefault();
+            }
+        }
+
         if(PC.isMoving){
+            RightLegRunOnce = true;
+            LeftLegRunOnce = true;
+            BodyRunOnce = true;
+            TwoSWaitRunOnce = true;
+            if(Posing){
+                BodyMoveStage = 0;
+                Body_progress = 0;
+                LeftFoot_progress = 0;
+                LeftFootMoveStage = 0;
+                RightFoot_progress = 0;
+                RightFootMoveStage = 1;
+                Hands_progress = 0;
+                HandsMoveStage = 0;
+                RightFoot_position_Last = RightFootTarget.position;
+                RightFoot_rotation_Last = RightFootTarget.rotation;
+                LeftFoot_position_Last = LeftFootTarget.position;
+                LeftFoot_rotation_Last = LeftFootTarget.rotation;
+            }
+            Posing = false;
             HandsWalkingOscilation();
             BodyOscilation();
-            
             LeftFootLogic();
             RightFootLogic();
+        } else if (!Posing){
+            BodyMoveStage = 0;
+            if(Body_progress > 0 && BodyRunOnce){
+                Body_progress = 0;
+                BodyRunOnce = false;
+            }
+            BodyOscilation();
+            HandsWalkingOscilation();
+            LandLegs();
         }
     }
 }
