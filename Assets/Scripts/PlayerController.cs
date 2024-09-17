@@ -31,26 +31,9 @@ public class PlayerController : MonoBehaviour
 
     public bool isMoving = false;
 
-    // IK Setup:
-    public Transform leftFootTarget, rightFootTarget;
-    public Transform leftHandTarget, rightHandTarget;
-    public float footOffset = 0.1f; // Offset to avoid foot clipping into ground
-    public LayerMask groundMask;
-    public float stepHeight = 0.2f; // Height of the step arc
-    public float stepSpeed = 6f; // Speed of the stepping motion
-
     private bool isWalking = false;
     private bool isFootstepCoroutineRunning = false;
     private AudioClip[] currentFootstepSounds;
-
-    private bool leftLegStepping = false;
-    private bool rightLegStepping = false;
-
-    private Vector3 leftFootStartPos, leftFootEndPos;
-    private Vector3 rightFootStartPos, rightFootEndPos;
-    private float leftfootStepProgress = 0f;
-    private float rightfootStepProgress = 0f;
-    private Vector3 leftlastPosition, rightlastPosition;
 
     Vector3 moveDirection = Vector3.zero;
     float rotationX = 0;
@@ -58,8 +41,15 @@ public class PlayerController : MonoBehaviour
 
     public float curSpeedX, curSpeedY;
 
+    public float Body_Rotation_Trigger_Angle = 35;
+    public float Body_Rotation_Speed = 0.1f;
+
+    private float Rotation_Memory;
+    private float Body_Rotation_Progress = 0;
+
     // Can The Player Move?:
     private bool canMove = true;
+    private bool Rotate_Body = false;
 
     CharacterController characterController;
 
@@ -76,10 +66,6 @@ public class PlayerController : MonoBehaviour
         // Initialize current footstep sounds to wood sounds by default
         currentFootstepSounds = FootstepSounds;
 
-        // Initial foot positions
-        leftFootStartPos = leftFootTarget.position;
-        rightFootStartPos = rightFootTarget.position;
-
         
     }
 
@@ -88,9 +74,6 @@ public class PlayerController : MonoBehaviour
         // Walking/Running In Action:
         Vector3 forward = transform.forward;
         Vector3 right = transform.right;
-
-        RaycastHit hitl;
-        RaycastHit hitr;
 
 
         
@@ -126,21 +109,37 @@ public class PlayerController : MonoBehaviour
             rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
 
             rotationY += Input.GetAxis("Mouse X") * lookSpeed;
-
-            playerCam.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
-
-            if(MouseLast != rotationY){
+            
+            if(!isMoving){
+                playerCam.transform.rotation = Quaternion.Euler(rotationX, rotationY, 0);
+                if(!((playerCam.transform.localRotation.eulerAngles.y <  Body_Rotation_Trigger_Angle && playerCam.transform.localRotation.eulerAngles.y >= 0) || (playerCam.transform.localRotation.eulerAngles.y >  360 - Body_Rotation_Trigger_Angle && playerCam.transform.localRotation.eulerAngles.y <= 360))){
+                    Rotate_Body = true;
+                }
+            } else {
+                playerCam.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
                 transform.rotation = Quaternion.Euler(0, rotationY, 0);
-                MouseLast = rotationY;
             }
-
         }
 
-        // Update foot target positions to follow the character's movement
-        UpdateFootTargetPosition(leftFootTarget);
-        UpdateFootTargetPosition(rightFootTarget);
+        if(Rotate_Body){
+            if(Body_Rotation_Progress <= Body_Rotation_Speed){
+                Rotation_Memory = playerCam.transform.localRotation.eulerAngles.y;
+            }
 
-        // IK Foot Placement:
+            if(Rotation_Memory <  180){
+                transform.Rotate(Vector3.up, Body_Rotation_Speed, Space.World);
+            } else {
+                transform.Rotate(Vector3.up, -Body_Rotation_Speed, Space.World);
+            }
+
+            Body_Rotation_Progress += Body_Rotation_Speed;
+
+            if(playerCam.transform.localRotation.eulerAngles.y <= Body_Rotation_Speed || playerCam.transform.localRotation.eulerAngles.y >= 360 - Body_Rotation_Speed){
+                Rotate_Body = false;
+                Body_Rotation_Progress = 0;
+            }
+        }
+
         if(curSpeedX != 0f || curSpeedY != 0f){
             isMoving = true;
         } else {
@@ -157,55 +156,6 @@ public class PlayerController : MonoBehaviour
         {
             isWalking = false;
         }
-    }
-
-    // Ensure that foot targets move with the character
-    void UpdateFootTargetPosition(Transform footTarget)
-    {
-        footTarget.position = transform.TransformPoint(footTarget.localPosition);
-    }
-
-    // Handle foot placement and procedural stepping
-    void HandleFootPlacement(Vector3 direction)
-    {   
-
-        if(leftfootStepProgress == 0) {
-            MoveFoot(ref rightfootStepProgress, rightFootTarget, rightlastPosition, playerTransform.position + direction + playerTransform.right*0.15f, false);
-            leftFootTarget.position = leftlastPosition;
-        }
-        if(rightfootStepProgress == 0) {
-            MoveFoot(ref leftfootStepProgress, leftFootTarget, leftlastPosition, playerTransform.position + direction - playerTransform.right*0.15f, true);
-            rightFootTarget.position = rightlastPosition;
-        }
-    }
-
-    void MoveFoot(ref float footStepProgress, Transform footTarget, Vector3 footStartPos, Vector3 footEndPos, bool left)
-    {
-        
-            footStepProgress += Time.deltaTime * stepSpeed;
-
-            // Arc movement for the foot to simulate lifting
-            footTarget.position = Vector3.Lerp(footStartPos, footEndPos, footStepProgress);
-
-            
-
-            if (footStepProgress >= 0.2f) {
-                footTarget.position = footTarget.position + Vector3.up * stepHeight*(2f - 5f*footStepProgress);
-            } else {
-                footTarget.position = footTarget.position + Vector3.up * stepHeight*(5f*footStepProgress);
-            }
-
-            // Check if the foot has completed the step
-            if (footStepProgress >= 0.4f)
-            {   
-                if(left){
-                    leftlastPosition = footTarget.position;
-                } else {
-                    rightlastPosition = footTarget.position;
-                }
-                
-                footStepProgress = 0f;
-            }
     }
 
     // Play footstep sounds with a delay based on movement speed

@@ -41,9 +41,6 @@ public class Walking : MonoBehaviour
     private int                 LeftFootMoveStage           = 0;
     private int                 RightFootMoveStage          = 1;
     private int                 HandsMoveStage              = 0;
-
-    private int                 StartMoveCounter            = 0;
-    private int                 StartDelay                  = 0;
     
     private bool                LeftFootGrounded            = true;
     private bool                RightFootGrounded           = true;
@@ -879,7 +876,6 @@ public class Walking : MonoBehaviour
 
         if(PC.isMoving){
             if(ResetBeforeMove){
-                StartMoveCounter = 0;
                 BodyMoveStage = 0;
                 Body_progress = 0;
                 LeftFoot_progress = 0;
