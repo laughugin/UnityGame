@@ -16,5 +16,6 @@ public class HeadTrack : MonoBehaviour
     void Update()
     {
         transform.position = Camera.position + Camera.forward*1;
+        transform.localRotation = Camera.localRotation;
     }
 }

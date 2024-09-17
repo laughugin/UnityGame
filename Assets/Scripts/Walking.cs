@@ -41,6 +41,9 @@ public class Walking : MonoBehaviour
     private int                 LeftFootMoveStage           = 0;
     private int                 RightFootMoveStage          = 1;
     private int                 HandsMoveStage              = 0;
+
+    private int                 StartMoveCounter            = 0;
+    private int                 StartDelay                  = 0;
     
     private bool                LeftFootGrounded            = true;
     private bool                RightFootGrounded           = true;
@@ -49,6 +52,9 @@ public class Walking : MonoBehaviour
     private bool                LeftLegRunOnce              = true;
     private bool                BodyRunOnce                 = true;
     private bool                TwoSWaitRunOnce             = true;
+
+    private bool                ResetBeforeMove             = true;
+    private bool                ResetBeforeStop             = true;
 
     private bool                Posing                      = false;
 
@@ -74,6 +80,11 @@ public class Walking : MonoBehaviour
         
         Vector3 Target, Start;
         Quaternion TargetR, StartR;
+        float Body_Angle = 16.8f/(1f + Mathf.Exp(-1.5f*Mathf.Abs(PC.curSpeedX) + 5.4f));
+        if(PC.curSpeedX < 0){
+            Body_Angle = -Body_Angle;
+        }
+        float Body_Shift = 0.32f/(1f + Mathf.Exp(-4.5f*PC.curSpeedX + 19f));
         if(         BodyMoveStage == 0 ){
             if(Body_progress <= Body_maxSpeed){
                 Body_position_Last = Armature.localPosition;
@@ -83,8 +94,10 @@ public class Walking : MonoBehaviour
             }
             Start = Body_position_Last;
             StartR = Body_rotation_Last;
-            Target = Vector3.zero;
-            TargetR = Quaternion.Euler(-85, 0, 0);
+            Target = Vector3.zero - Vector3.forward*Body_Shift;
+
+            TargetR = Quaternion.Euler(-90 + Body_Angle, 0, 0);
+
             Armature.localPosition = CalculatePoint(Start, Target, Body_progress);
             Armature.localRotation = CalculateRotation(StartR, TargetR, Body_progress);
             if(Body_progress >= 1){
@@ -99,9 +112,11 @@ public class Walking : MonoBehaviour
             }
             Start = Body_position_Last;
             StartR = Body_rotation_Last;
-            Target = Vector3.zero;
+            Target = Vector3.zero - Vector3.forward*Body_Shift;
             Target = Target + Vector3.up*0.06f + Vector3.right*0.02f;
-            TargetR = Quaternion.Euler(-85, -15, 30);
+
+            TargetR = Quaternion.Euler(-90 + Body_Angle, -15, 30);
+
             Armature.localPosition = CalculatePoint(Start, Target, Body_progress);
             Armature.localRotation = CalculateRotation(StartR, TargetR, Body_progress);
             if(Body_progress >= 1){
@@ -116,8 +131,10 @@ public class Walking : MonoBehaviour
             }
             Start = Body_position_Last;
             StartR = Body_rotation_Last;
-            Target = Vector3.zero;
-            TargetR = Quaternion.Euler(-85, 0, 0);
+            Target = Vector3.zero - Vector3.forward*Body_Shift;
+            
+            TargetR = Quaternion.Euler(-90 + Body_Angle, 0, 0);
+
             Armature.localPosition = CalculatePoint(Start, Target, Body_progress);
             Armature.localRotation = CalculateRotation(StartR, TargetR, Body_progress);
             if(Body_progress >= 1){
@@ -132,9 +149,33 @@ public class Walking : MonoBehaviour
             }
             Start = Body_position_Last;
             StartR = Body_rotation_Last;
-            Target = Vector3.zero;
+            Target = Vector3.zero - Vector3.forward*Body_Shift;
             Target = Target  + Vector3.up*0.06f - Vector3.right*0.02f;
-            TargetR = Quaternion.Euler(-85, -30, 15);
+            
+            TargetR = Quaternion.Euler(-90 + Body_Angle, -30, 15);
+
+            Armature.localPosition = CalculatePoint(Start, Target, Body_progress);
+            Armature.localRotation = CalculateRotation(StartR, TargetR, Body_progress);
+            if(Body_progress >= 1){
+                Body_progress = 1;
+            }
+        } else if(         BodyMoveStage == 4 ){
+            if(Body_progress <= Body_maxSpeed){
+                Body_position_Last = Armature.localPosition;
+                Body_rotation_Last = Armature.localRotation;
+                HandsMoveStage = 0;
+                Hands_progress = 0;
+            }
+            Start = Body_position_Last;
+            StartR = Body_rotation_Last;
+            Target = Vector3.zero + Vector3.up*0.05f;
+            if(PC.curSpeedX > 0){
+                TargetR = Quaternion.Euler(-85, 0, 0);
+            } else if(PC.curSpeedX < 0){
+                TargetR = Quaternion.Euler(-95, 0, 0);
+            } else {
+                TargetR = Quaternion.Euler(-90, 0, 0);
+            }
             Armature.localPosition = CalculatePoint(Start, Target, Body_progress);
             Armature.localRotation = CalculateRotation(StartR, TargetR, Body_progress);
             if(Body_progress >= 1){
@@ -194,8 +235,13 @@ public class Walking : MonoBehaviour
             LStart = LeftHand_position_Last;
             LStartR = LeftHand_rotation_Last;
 
-            LTarget = new Vector3(-0.20f, 0.923f, 0.102f);
-            LTargetR = Quaternion.Euler(-22.4f, 28.9f, -14.1f);
+            if(PC.curSpeedX > 3){
+                LTarget = new Vector3(-0.20f,  0.823f + (Mathf.Abs(PC.curSpeedX) - 1.675f)/13.3f, 0.102f);
+                LTargetR = Quaternion.Euler(-21.4f - (Mathf.Abs(PC.curSpeedX) - 2.93f)/0.067f, 28.9f, -14.1f);
+            } else {
+                LTarget = new Vector3(-0.20f,  0.923f, 0.102f);
+                LTargetR = Quaternion.Euler(-22.4f, 28.9f, -14.1f);
+            }
 
             RStart = RightHand_position_Last;
             RStartR = RightHand_rotation_Last;
@@ -261,8 +307,13 @@ public class Walking : MonoBehaviour
             RStart = RightHand_position_Last;
             RStartR = RightHand_rotation_Last;
 
-            RTarget = new Vector3(0.20f, 0.923f, 0.102f);
-            RTargetR = Quaternion.Euler(-22.4f, -28.9f, 14.1f);
+            if(PC.curSpeedX > 3){
+                RTarget = new Vector3(0.20f, 0.823f + (Mathf.Abs(PC.curSpeedX) - 1.675f)/13.3f, 0.102f);
+                RTargetR = Quaternion.Euler(-21.4f - (Mathf.Abs(PC.curSpeedX) - 2.93f)/0.067f, -28.9f, 14.1f);
+            } else {
+                RTarget = new Vector3(0.20f, 0.923f, 0.102f);
+                RTargetR = Quaternion.Euler(-22.4f, -28.9f, 14.1f);
+            }
 
             LeftHandTarget.localPosition = CalculatePoint(LStart, LTarget, Hands_progress);
             LeftHandTarget.localRotation = CalculateRotation(LStartR, LTargetR, Hands_progress);
@@ -294,7 +345,16 @@ public class Walking : MonoBehaviour
             LeftFootGrounded = false;
             LStart = LeftFoot_position_Last;
             LStartR = LeftFoot_rotation_Last;
-            LTarget = new Vector3(-0.1f, 0.07f, 0) + new Vector3(PC.curSpeedY/12, 0, PC.curSpeedX/3)*0.7f;
+            if(PC.curSpeedY > 0){
+                LTarget = new Vector3(-0.1f, 0.07f, 0) + new Vector3(-PC.curSpeedY/12, 0, PC.curSpeedX/3)*0.7f;
+            } else if(PC.curSpeedY < 0) {
+                LTarget = new Vector3(-0.1f, 0.07f, 0) + new Vector3(PC.curSpeedY/3, 0, PC.curSpeedX/3)*0.7f;
+            } else {
+                LTarget = new Vector3(-0.1f, 0.07f, 0) + new Vector3(PC.curSpeedY/12, 0, PC.curSpeedX/3)*0.7f;
+            }
+            if(PC.curSpeedX > 4) {
+                LTarget += new Vector3(0, PC.curSpeedX/4f - 0.75f, -0.4f*PC.curSpeedX/3);
+            }
             LTargetR = Quaternion.Euler(-18, 0, 0);
             LeftFootTarget.localPosition = CalculatePoint(LStart, LTarget, LeftFoot_progress);
             LeftFootTarget.localRotation = CalculateRotation(LStartR, LTargetR, LeftFoot_progress);
@@ -310,7 +370,7 @@ public class Walking : MonoBehaviour
                 if (Physics.Raycast(LeftFootTarget.position + 0.2f*Vector3.up, Vector3.down, out Lhit, Mathf.Infinity))
                 {
                     
-                    LeftFoot_touch_point = Lhit.point;
+                    LeftFoot_touch_point = Lhit.point + 0.06f*Vector3.up;
                 }
             }
             LeftFootGrounded = false;
@@ -330,20 +390,42 @@ public class Walking : MonoBehaviour
 
             LeftFootGrounded = true;
 
-            LeftFootTarget.position = LeftFoot_touch_point;
+            if(LeftFootTarget.localPosition.z <= 0 && PC.curSpeedX > 0){
+                LeftFootTarget.position = LeftFoot_touch_point + Vector3.up*(1f / (7.7f + Mathf.Exp(-20f * (-LeftFootTarget.localPosition.z) + 7f)));
+            } else if(LeftFootTarget.localPosition.z >= 0 && PC.curSpeedX < 0){
+                LeftFootTarget.position = LeftFoot_touch_point + Vector3.up*(1f / (7.7f + Mathf.Exp(20f * (-LeftFootTarget.localPosition.z) + 7f)));
+            } else {
+                LeftFootTarget.position = LeftFoot_touch_point;
+            }
 
-            if(LeftFootTarget.localPosition.z <= 0){
-                LeftFootTarget.localRotation = Quaternion.Euler(Mathf.Exp(0.55f * (-LeftFootTarget.localPosition.z)) - 1, 0, 0);
+            if(LeftFootTarget.localPosition.z <= 0 && PC.curSpeedX > 0){
+                LeftFootTarget.localRotation = Quaternion.Euler((54f / (1f + Mathf.Exp(-13f * (-LeftFootTarget.localPosition.z) + 3f))) + 2.5f, 0, 0);
             } else {
                 LeftFootTarget.localRotation = Quaternion.Euler(0, 0, 0);
             }
 
             LeftFoot_progress = 0;
 
-            if(Vector3.Distance(LeftFootTarget.position, Armature.position) >= 0.2){
-                if(RightFootMoveStage != 1 && RightFoot_progress >= 1){
-                    RightFootMoveStage = 1;
-                    RightFoot_progress = 0;
+            if(PC.curSpeedY > 0 && PC.curSpeedX == 0){
+                if(Vector3.Distance(LeftFootTarget.position, Armature.position) >= 0.1){
+                    if(RightFootMoveStage != 1 && RightFoot_progress >= 1){
+                        RightFootMoveStage = 1;
+                        RightFoot_progress = 0;
+                    }
+                }
+            } else if(PC.curSpeedY < 0 && PC.curSpeedX == 0){
+                if(LeftFootTarget.localPosition.x > -0.1){
+                    if(RightFootMoveStage != 1 && RightFoot_progress >= 1){
+                        RightFootMoveStage = 1;
+                        RightFoot_progress = 0;
+                    }
+                }
+            } else {
+                if(Vector3.Distance(LeftFootTarget.position, Armature.position) >= 0.2){
+                    if(RightFootMoveStage != 1 && RightFoot_progress >= 1){
+                        RightFootMoveStage = 1;
+                        RightFoot_progress = 0;
+                    }
                 }
             }
 
@@ -368,7 +450,16 @@ public class Walking : MonoBehaviour
             RightFootGrounded = false;
             RStart = RightFoot_position_Last;
             RStartR = RightFoot_rotation_Last;
-            RTarget = new Vector3(0.1f, 0.07f, 0) + new Vector3(PC.curSpeedY/12, 0, PC.curSpeedX/3)*0.7f;
+            if(PC.curSpeedY > 0){
+                RTarget = new Vector3(0.1f, 0.07f, 0) + new Vector3(PC.curSpeedY/3, 0, PC.curSpeedX/3)*0.7f;
+            } else if(PC.curSpeedY < 0){
+                RTarget = new Vector3(0.1f, 0.07f, 0) + new Vector3(-PC.curSpeedY/12, 0, PC.curSpeedX/3)*0.7f;
+            } else {
+                RTarget = new Vector3(0.1f, 0.07f, 0) + new Vector3(PC.curSpeedY/12, 0, PC.curSpeedX/3)*0.7f;
+            }
+            if(PC.curSpeedX > 4) {
+                RTarget += new Vector3(0, PC.curSpeedX/4f - 0.75f, -0.4f*PC.curSpeedX/3);
+            }
             RTargetR = Quaternion.Euler(-18, 0, 0);
             RightFootTarget.localPosition = CalculatePoint(RStart, RTarget, RightFoot_progress);
             RightFootTarget.localRotation = CalculateRotation(RStartR, RTargetR, RightFoot_progress);
@@ -383,7 +474,7 @@ public class Walking : MonoBehaviour
                 Body_progress = 0;
                 if (Physics.Raycast(RightFootTarget.position + 0.2f*Vector3.up, Vector3.down, out Rhit, Mathf.Infinity))
                 {
-                    RightFoot_touch_point = Rhit.point;
+                    RightFoot_touch_point = Rhit.point + 0.06f*Vector3.up;
                 }
             }
             RightFootGrounded = false;
@@ -402,21 +493,42 @@ public class Walking : MonoBehaviour
         } else if(  RightFootMoveStage == 2 ){
 
             RightFootGrounded = true;
+            if(RightFootTarget.localPosition.z <= 0 && PC.curSpeedX > 0){
+                RightFootTarget.position = RightFoot_touch_point + Vector3.up*(1f / (7.7f + Mathf.Exp(-20f * (-RightFootTarget.localPosition.z) + 7f)));
+            } else if(RightFootTarget.localPosition.z >= 0 && PC.curSpeedX < 0){
+                RightFootTarget.position = RightFoot_touch_point + Vector3.up*(1f / (7.7f + Mathf.Exp(20f * (-RightFootTarget.localPosition.z) + 7f)));
+            } else {
+                RightFootTarget.position = RightFoot_touch_point;
+            }
 
-            RightFootTarget.position = RightFoot_touch_point;
-
-            if(RightFootTarget.localPosition.z <= 0){
-                RightFootTarget.localRotation = Quaternion.Euler(Mathf.Exp(0.55f * (-RightFootTarget.localPosition.z)) - 1, 0, 0);
+            if(RightFootTarget.localPosition.z <= 0 && PC.curSpeedX > 0){
+                RightFootTarget.localRotation = Quaternion.Euler((54f / (1f + Mathf.Exp(-13f * (-RightFootTarget.localPosition.z) + 3f))) + 2.5f, 0, 0);
             } else {
                 RightFootTarget.localRotation = Quaternion.Euler(0, 0, 0);
             }
 
             RightFoot_progress = 0;
-
-            if(Vector3.Distance(RightFootTarget.position, Armature.position) >= 0.2){
-                if(LeftFootMoveStage != 1 && LeftFoot_progress >= 1){
-                    LeftFootMoveStage = 1;
-                    LeftFoot_progress = 0;
+            
+            if(PC.curSpeedY > 0 && PC.curSpeedX == 0){
+                if(RightFootTarget.localPosition.x < 0.1){
+                    if(LeftFootMoveStage != 1 && LeftFoot_progress >= 1){
+                        LeftFootMoveStage = 1;
+                        LeftFoot_progress = 0;
+                    }
+                }
+            } else if(PC.curSpeedY < 0 && PC.curSpeedX == 0){
+                if(Vector3.Distance(RightFootTarget.position, Armature.position) >= 0.1){
+                    if(LeftFootMoveStage != 1 && LeftFoot_progress >= 1){
+                        LeftFootMoveStage = 1;
+                        LeftFoot_progress = 0;
+                    }
+                }
+            } else {
+                if(Vector3.Distance(RightFootTarget.position, Armature.position) >= 0.2){
+                    if(LeftFootMoveStage != 1 && LeftFoot_progress >= 1){
+                        LeftFootMoveStage = 1;
+                        LeftFoot_progress = 0;
+                    }
                 }
             }
 
@@ -477,7 +589,7 @@ public class Walking : MonoBehaviour
                 RightFoot_rotation_Last = RightFootTarget.localRotation;
                 if (Physics.Raycast(RightFootTarget.position + 0.2f*Vector3.up, Vector3.down, out Rhit, Mathf.Infinity))
                 {
-                    RightFoot_touch_point = Rhit.point;
+                    RightFoot_touch_point = Rhit.point + 0.06f*Vector3.up;
                 }
             }
                 RStart = RightFoot_position_Last;
@@ -511,7 +623,7 @@ public class Walking : MonoBehaviour
                 LeftFoot_rotation_Last = LeftFootTarget.localRotation;
                 if (Physics.Raycast(LeftFootTarget.position + 0.2f*Vector3.up, Vector3.down, out Lhit, Mathf.Infinity))
                 {
-                    LeftFoot_touch_point = Lhit.point;
+                    LeftFoot_touch_point = Lhit.point + 0.06f*Vector3.up;
                 }
             }
 
@@ -548,7 +660,7 @@ public class Walking : MonoBehaviour
             LeftFootGrounded = false;
             LStart = LeftFoot_position_Last;
             LStartR = LeftFoot_rotation_Last;
-            LTarget = LeftFoot_position_Last + Vector3.up*0.2f;
+            LTarget = LeftFoot_position_Last + Vector3.up*0.1f;
             LTargetR = Quaternion.Euler(0, 0, 0);
             LeftFootTarget.position = CalculatePoint(LStart, LTarget, LeftFoot_progress);
             LeftFootTarget.localRotation = CalculateRotation(LStartR, LTargetR, LeftFoot_progress);
@@ -565,7 +677,7 @@ public class Walking : MonoBehaviour
                 LeftFoot_rotation_Last = LeftFootTarget.localRotation;
                 if (Physics.Raycast(Armature.position + 0.2f*Vector3.up - 0.15f*Armature.right, Vector3.down, out Lhit, Mathf.Infinity))
                 {
-                    LeftFoot_touch_point = Lhit.point;
+                    LeftFoot_touch_point = Lhit.point + 0.06f*Vector3.up - Vector3.up*0.1f - Vector3.forward*0.05f;
                 }
             }
 
@@ -604,7 +716,7 @@ public class Walking : MonoBehaviour
             RightFootGrounded = false;
             RStart = RightFoot_position_Last;
             RStartR = RightFoot_rotation_Last;
-            RTarget = RightFoot_position_Last + Vector3.up*0.2f;
+            RTarget = RightFoot_position_Last + Vector3.up*0.1f;
             RTargetR = Quaternion.Euler(0, 0, 0);
             RightFootTarget.position = CalculatePoint(RStart, RTarget, RightFoot_progress);
             RightFootTarget.localRotation = CalculateRotation(RStartR, RTargetR, RightFoot_progress);
@@ -621,7 +733,7 @@ public class Walking : MonoBehaviour
                 RightFoot_rotation_Last = RightFootTarget.localRotation;
                 if (Physics.Raycast(Armature.position + 0.2f*Vector3.up + 0.15f*Armature.right, Vector3.down, out Rhit, Mathf.Infinity))
                 {
-                    RightFoot_touch_point = Rhit.point;
+                    RightFoot_touch_point = Rhit.point + 0.06f*Vector3.up - Vector3.up*0.1f - Vector3.forward*0.05f;
                 }
             }
             
@@ -674,7 +786,7 @@ public class Walking : MonoBehaviour
     {
         // Wait for 2 seconds
         if(TwoSWaitRunOnce){
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(0.2f);
             TwoSWaitRunOnce = false;
         }
 
@@ -685,40 +797,58 @@ public class Walking : MonoBehaviour
                 Body_progress = 0;
                 LegAdjust = true;
             }
+            ResetBeforeMove = true;
             Posing = true;
-            
             Body_MoveHigher();
         }
         checkCoroutine = null;
     }
 
+    private void CheckIfGrounded(){
+        RaycastHit hit;
+        if (Physics.Raycast(RightFootTarget.position, Vector3.down, out hit, 10f))
+        {
+            if(hit.distance > 0.065){
+                RightFootGrounded = false;
+            }
+        }
+        if (Physics.Raycast(LeftFootTarget.position, Vector3.down, out hit, 10f))
+        {
+            if(hit.distance > 0.065){
+                LeftFootGrounded = false;
+            }
+        }
+    }
+
     // Update is called once per frame
     void Update()
     {
-        Body_maxSpeed = 3f*Mathf.Abs(PC.curSpeedX + PC.curSpeedY)/200f;
+        Body_maxSpeed = 4f*Mathf.Abs(PC.curSpeedX + PC.curSpeedY*2f)/200f;
+        Hands_maxSpeed = 4f*Mathf.Abs(PC.curSpeedX + PC.curSpeedY*2f)/200f;
+        Foots_maxSpeed = 3f*Mathf.Abs(PC.curSpeedX + PC.curSpeedY*2f)/200f;
+
+
+        if( Foots_maxSpeed < Foot_Minimum_Speed ){
+            Foots_maxSpeed = Foot_Minimum_Speed;
+        }
+        if( Hands_maxSpeed < Hands_Minimum_Speed ){
+            Hands_maxSpeed = Hands_Minimum_Speed;
+        }
         if( Body_maxSpeed < Body_Minimum_Speed ){
             Body_maxSpeed = Body_Minimum_Speed;
         }
 
-        Hands_maxSpeed = 3f*Mathf.Abs(PC.curSpeedX + PC.curSpeedY)/200f;
-        if( Hands_maxSpeed < Hands_Minimum_Speed ){
-            Hands_maxSpeed = Hands_Minimum_Speed;
-        }
-
-        Foots_maxSpeed = 3f*Mathf.Abs(PC.curSpeedX + PC.curSpeedY)/200f;
-        if( Foots_maxSpeed < Foot_Minimum_Speed ){
-            Foots_maxSpeed = Foot_Minimum_Speed;
-        }
 
         if (!PC.isMoving && checkCoroutine == null)
         {
             checkCoroutine = StartCoroutine(GoToPose());
         }
+        
+        CheckIfGrounded();
 
         if(!PC.isMoving && RightFootGrounded){
             RightFootTarget.position = RightFoot_position_Last;
             RightFootTarget.rotation = RightFoot_rotation_Last;
-            Debug.Log(Quaternion.Angle(LeftFootTarget.rotation, Player.rotation));
             if(Quaternion.Angle(RightFootTarget.rotation, Player.rotation) > 60){
                 LegAdjust = true;
             }
@@ -733,7 +863,7 @@ public class Walking : MonoBehaviour
         }
 
         if (LegAdjust){
-            if(LegAdjustInit){
+            if(LegAdjustInit || LeftFootMoveStage == 2 || RightFootMoveStage == 2){
                 LeftFoot_progress = 0;
                 LeftFootMoveStage = 0;
                 RightFoot_progress = 0;
@@ -741,17 +871,15 @@ public class Walking : MonoBehaviour
                 LegAdjustInit = false;
             }
             LeftFoot_MoveToDefault();
+            CheckIfGrounded();
             if(LeftFootGrounded){
                 RightFoot_MoveToDefault();
             }
         }
 
         if(PC.isMoving){
-            RightLegRunOnce = true;
-            LeftLegRunOnce = true;
-            BodyRunOnce = true;
-            TwoSWaitRunOnce = true;
-            if(Posing){
+            if(ResetBeforeMove){
+                StartMoveCounter = 0;
                 BodyMoveStage = 0;
                 Body_progress = 0;
                 LeftFoot_progress = 0;
@@ -760,18 +888,35 @@ public class Walking : MonoBehaviour
                 RightFootMoveStage = 1;
                 Hands_progress = 0;
                 HandsMoveStage = 0;
-                RightFoot_position_Last = RightFootTarget.position;
-                RightFoot_rotation_Last = RightFootTarget.rotation;
-                LeftFoot_position_Last = LeftFootTarget.position;
-                LeftFoot_rotation_Last = LeftFootTarget.rotation;
+                RightLegRunOnce = true;
+                LeftLegRunOnce = true;
+                BodyRunOnce = true;
+                TwoSWaitRunOnce = true;
+                Posing = false;
+                ResetBeforeMove = false;
+                LegAdjustInit = true;
             }
-            Posing = false;
+            LegAdjust = false;
+            ResetBeforeStop = true;
             HandsWalkingOscilation();
             BodyOscilation();
             LeftFootLogic();
             RightFootLogic();
         } else if (!Posing){
-            BodyMoveStage = 0;
+            if(ResetBeforeStop){
+                BodyMoveStage = 0;
+                Body_progress = 0;
+                LeftFoot_progress = 0;
+                LeftFootMoveStage = 0;
+                RightFoot_progress = 0;
+                RightFootMoveStage = 0;
+                Hands_progress = 0;
+                HandsMoveStage = 0;
+                ResetBeforeStop = false;
+                TwoSWaitRunOnce = true;
+            }
+            ResetBeforeMove = true;
+            BodyMoveStage = 4;
             if(Body_progress > 0 && BodyRunOnce){
                 Body_progress = 0;
                 BodyRunOnce = false;
